@@ -10,43 +10,18 @@ gem_group :development, :test do
   gem 'faker'
 end
 
-gem "devise"
-
-inject_into_file "app/views/layouts/application.html.erb", after: /<body>/ do
-  <<-HTML
-
-    <% if user_signed_in? %>
-      <div class="text-right">
-        <%= link_to 'Sign Out', destroy_user_session_path, method: :delete, class: 'text-right' %>
-      </div>
-    <% else %>
-      <div class="text-right">
-        <%= link_to 'Sign In', new_user_session_path %>
-      </div>
-    <% end %>
-  HTML
-end
-
 template "config/database.yml.tt", "config/database.yml", force: true
 template "docker-compose.yml.tt", "docker-compose.yml", force: true
 
 [
   "bin/setup",
 
-  # Static pages
-  "app/controllers/static_pages_controller.rb",
-  "app/views/static_pages/home.html.erb",
-
 ].each do |file_path|
   copy_file file_path, file_path, force: true
 end
 
-route "root to: 'static_pages#home'"
 directory "post_templates", "post_templates"
 
 after_bundle do
   run 'bin/spring stop'
-  generate "devise:install"
-  environment "config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }", env: "development"
-  generate :devise, "User"
 end
